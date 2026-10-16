@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.DS_Store
+.env
+.env.*
+!.env.example
+coverage/
+playwright-report/
+test-results/
+
+# AI tooling (local only, not published)
+.opencode/
+opencode.json
+AGENTS.md

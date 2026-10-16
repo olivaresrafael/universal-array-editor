@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "First record",
+    "enabled": true,
+    "tags": ["one", "two"],
+    "meta": { "labels": ["alpha", "beta"] }
+  },
+  {
+    "id": 2,
+    "name": "Second record",
+    "enabled": false,
+    "tags": [],
+    "meta": { "labels": [] }
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "name": "universal-array-editor",
+  "version": "0.2.0",
+  "private": false,
+  "description": "A free, bilingual, local-first editor for JSON and YAML arrays of objects.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "node --check src/main.js && node --check src/i18n.js && node --check src/parsers.js && node --check src/model.js && node --check src/views.js && node --check src/highlight.js"
+  },
+  "dependencies": {
+    "js-yaml": "^5.4.3",
+    "json5": "^2.2.3"
+  },
+  "devDependencies": {
+    "vite": "^7.1.12"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "license": "MIT",
+  "packageManager": "pnpm@10.28.2"
+}

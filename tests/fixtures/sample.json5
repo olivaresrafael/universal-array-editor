@@ -1,0 +1,17 @@
+// Sample JSON5 array: comments, trailing commas, single quotes,
+// and unquoted keys are all valid here.
+[
+  {
+    // First record
+    id: 201,
+    name: 'First item',
+    enabled: true,
+    tags: ['demo', 'sample',],
+  },
+  {
+    id: 202,
+    name: 'Second item',
+    enabled: false,
+    tags: [],
+  },
+]

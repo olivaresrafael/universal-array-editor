@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#172554">
+  <meta name="description" content="A free, private JSON and YAML array editor. Reorder, edit, paste, and download structured data in your browser.">
+  <title>Array Editor — JSON & YAML</title>
+</head>
+<body>
+<header class="hero">
+  <div class="brand-line">
+    <div class="brand-mark">{ }</div>
+    <div><div class="eyebrow" data-i18n="freeTool">Free, open-source tool</div><div style="font-size:.9rem;font-weight:750">Array Editor</div></div>
+    <label class="locale-control"><span data-i18n="language">Language</span><select id="languageSelect" aria-label="Language"><option value="en">English</option><option value="es">Español</option></select></label>
+  </div>
+  <h1 data-i18n="heroTitle">Reorder and edit structured data.<br>Keep control of your files.</h1>
+  <p data-i18n="heroDescription">Paste or load a JSON or YAML array, reorder items with drag and drop, edit fields, and download the result. Your content stays in your browser.</p>
+  <div class="trustline"><span data-i18n="trustNoAccount">✓ No account</span><span data-i18n="trustLocal">✓ Local processing</span><span data-i18n="trustFree">✓ Free and open source</span></div>
+</header>
+<noscript><div class="noscript">This tool requires JavaScript. Enable it in your browser and reload this page.</div></noscript>
+<main>
+  <section class="panel">
+    <div class="section-heading"><div class="step">1</div><div><h2 data-i18n="loadTitle">Load or paste your data</h2><p data-i18n="loadDescription">The root value must be an array of objects.</p></div></div>
+    <div class="toolbar">
+      <label class="file-label" for="fileInput" data-i18n="chooseFile">📂 Choose JSON/YAML file</label>
+      <input id="fileInput" type="file" accept=".json,.json5,.yaml,.yml,.txt,application/json,application/yaml,text/yaml,text/plain">
+      <button id="sampleBtn" class="secondary" type="button" data-i18n="sampleButton">Try an example</button>
+      <button id="downloadBtn" class="primary" type="button" disabled data-i18n="downloadOutput">⬇ Download output</button>
+    </div>
+    <div class="format-row">
+      <div class="format-control"><label for="inputFormat" data-i18n="inputFormat">Input format</label><select id="inputFormat"><option value="auto" data-i18n="autoDetect">Auto-detect</option><option value="json">JSON</option><option value="json5">JSON5</option><option value="yaml">YAML</option></select></div>
+      <div class="format-control"><label for="outputFormat" data-i18n="outputFormat">Download format</label><select id="outputFormat"><option value="source" data-i18n="sameAsInput">Same as input</option><option value="json">JSON</option><option value="json5">JSON5</option><option value="yaml">YAML</option></select></div>
+    </div>
+    <div class="input-methods">
+      <div class="input-method">
+        <label for="pastedText" data-i18n="pasteLabel">Paste JSON/YAML text</label>
+        <textarea id="pastedText" spellcheck="false" data-i18n-placeholder="pastePlaceholder" placeholder="Paste an array of objects here…"></textarea>
+        <button id="parseTextBtn" class="primary" type="button" data-i18n="loadPastedText">Load pasted text</button>
+        <div class="field-help" data-i18n="pasteHelp">Choose Auto-detect, JSON, or YAML above. The input is not sent to a server.</div>
+      </div>
+      <div class="input-method">
+        <label data-i18n="fileLabel">Select a local file</label>
+        <div class="field-help" data-i18n="fileHelp">Supported file extensions: .json, .yaml, .yml, and .txt. The file is read locally in your browser.</div>
+        <div id="status" class="status" role="status" aria-live="polite" data-i18n="readyStatus">Choose a file, paste text, or try the example to get started.</div>
+        <div id="stats" class="stats"></div>
+      </div>
+    </div>
+  </section>
+  <div class="view-tabs" role="tablist" aria-label="Views">
+    <button id="tabList" type="button" role="tab" aria-selected="true" class="active" data-i18n="viewList">List</button>
+    <button id="tabPretty" type="button" role="tab" aria-selected="false" data-i18n="viewPretty">Prettify</button>
+    <button id="tabRaw" type="button" role="tab" aria-selected="false" data-i18n="viewRaw">Raw</button>
+  </div>
+  <div id="viewList">
+  <div class="workspace">
+    <section class="panel items-panel">
+      <div class="section-heading"><div class="step">2</div><div><h2 data-i18n="reorderTitle">Reorder items</h2><p data-i18n="reorderDescription">Drag a row or use the arrows to move it.</p></div></div>
+      <div class="list-toolbar"><div id="listCount" class="subtle" data-i18n="noItemsLoaded">No items loaded</div><label class="search-wrap"><span>⌕</span><input id="searchInput" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search items…" aria-label="Search items" disabled></label></div>
+      <div class="list-hint" data-i18n="listHint">Changes apply to the downloaded output; the original file remains unchanged.</div>
+      <div id="items"><div class="empty"><strong data-i18n="listEmptyTitle">Your list will appear here</strong><span data-i18n="listEmptyDescription">Load an array or try the example.</span></div></div>
+      <div id="countNote" class="count-note"></div>
+    </section>
+    <section class="panel form-panel">
+      <div class="section-heading"><div class="step">3</div><div><h2 id="formTitle" data-i18n="addItemTitle">Add an item</h2><p id="formHelp" data-i18n="formHelp">Fields are inferred from the loaded objects.</p></div></div>
+      <form id="itemForm">
+        <div id="fields"><div class="empty" data-i18n="formEmpty">Load an array of objects to generate the form.</div></div>
+        <div class="form-actions"><button class="primary" type="submit" id="saveBtn" disabled data-i18n="addItemButton">＋ Add item</button><button class="secondary" type="button" id="cancelEditBtn" hidden data-i18n="cancelEdit">Cancel edit</button></div>
+        <div class="form-note" data-i18n="arrayEditorHelp">Array values are edited one item at a time. Use “+ Add item” underneath an array to expand it; remove individual rows as needed.</div>
+      </form>
+      <details><summary data-i18n="previewTitle">Preview output</summary><div class="preview-toolbar"><span class="subtle" data-i18n="previewHelp">Preview of the file you will download</span><button id="copyBtn" type="button" class="secondary small" disabled data-i18n="copyOutput">Copy output</button></div><pre id="preview">[]</pre></details>
+    </section>
+  </div>
+  </div>
+  <div id="viewPretty" hidden>
+    <section class="panel">
+      <div class="section-heading"><div><h2 data-i18n="viewPretty">Prettify</h2><p data-i18n="prettyHelp">Read-only formatted output in the selected download format.</p></div></div>
+      <div class="preview-toolbar"><span class="subtle" data-i18n="previewHelp">Preview of the file you will download</span><button id="copyPrettyBtn" type="button" class="secondary small" disabled data-i18n="copyOutput">Copy output</button><button id="editPrettyBtn" type="button" class="secondary small" disabled data-i18n="editPretty">Edit</button></div>
+      <pre id="prettyOutput">[]</pre>
+      <div id="prettyEditWrap" hidden>
+        <div class="field-help pretty-edit-help" data-i18n="prettyEditHelp">Edit the formatted text, then apply your changes.</div>
+        <textarea id="prettyEditor" class="pretty-editor" spellcheck="false"></textarea>
+        <div class="form-actions pretty-actions">
+          <button id="applyPrettyBtn" class="primary" type="button" data-i18n="applyRaw">Apply changes</button>
+          <button id="cancelPrettyBtn" class="secondary" type="button" data-i18n="cancelEdit">Cancel edit</button>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div id="viewRaw" hidden>
+    <section class="panel">
+      <div class="section-heading"><div><h2 data-i18n="rawLabel">Edit raw text</h2><p data-i18n="rawHelp">Edit the full document as text, then apply your changes. Invalid syntax will not replace the current data.</p></div></div>
+      <label class="raw-label" for="rawEditor" data-i18n="rawLabel">Edit raw text</label>
+      <textarea id="rawEditor" class="raw-editor" spellcheck="false" placeholder="[]"></textarea>
+      <div class="form-actions raw-actions">
+        <button id="applyRawBtn" class="primary" type="button" data-i18n="applyRaw">Apply changes</button>
+        <button id="syncRawBtn" class="secondary" type="button" data-i18n="syncRaw">Reload from data</button>
+      </div>
+    </section>
+  </div>
+  <section class="support-panel" id="supportPanel">
+    <div><h2 data-i18n="supportTitle">Found this useful? Support the project ☕</h2><p data-i18n="supportDescription">This tool is free to use. If it saved you time and you would like to help maintain it, you can make a voluntary donation. Donations are optional and never unlock features.</p><div class="support-empty" id="supportHint" data-i18n="supportUnconfigured">Donation links will appear here once configured by the maintainer.</div></div>
+    <div class="support-actions" id="supportActions"></div>
+  </section>
+</main>
+<footer><span data-i18n="privacyFooter">Files are processed in your browser and are not uploaded to this tool's server.</span> <span id="footerVersion">Array Editor</span> · <a href="https://github.com/" target="_blank" rel="noopener noreferrer" data-i18n="openSourceLink">Explore open-source code</a></footer>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
