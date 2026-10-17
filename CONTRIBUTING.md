@@ -19,10 +19,10 @@ pnpm run dev
 Before submitting a change:
 
 ```sh
-pnpm test
-pnpm run check
-pnpm run build
+pnpm run verify
 ```
+
+That runs the unit suite, the syntax check, and the build, which is exactly what CI runs on every push and pull request.
 
 ## Pull request guidance
 - Explain the user problem and the intended behavior.

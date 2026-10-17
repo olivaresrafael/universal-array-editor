@@ -42,6 +42,7 @@ index.html (shell + view tabs: List | Prettify | Raw)
 - `Raw` is an editable textarea over the full document. It syncs from `data` on load, on tab enter, and via “Reload from data”; “Apply changes” parses with auto-detect and never replaces `data` on syntax errors (`rawDirty` guards against overwriting in-progress edits).
 - The `Auto-detect` input option shows the detected format in parentheses once data is loaded (e.g. `Auto-detect (YAML)`), via `refreshInputFormatLabel()`.
 - The download button shows the effective output format (`refreshDownloadBtn()`), and the stats include an `Output: …` pill, so the download format is always visible.
+- Because exporting regenerates the document from the edited values, `fidelityNoteKey(format)` in `src/parsers.js` maps the effective output format to a warning key (`fidelityYAML`, `fidelityJSON5`, `fidelityCSV`). `refreshFidelityNote()` shows the matching bilingual note under the format selectors, so users are told before downloading that comments, original indentation, and CSV quoting will not be preserved. JSON and NDJSON lose nothing beyond whitespace and show no note.
 
 ## Item modal
 

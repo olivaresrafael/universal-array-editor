@@ -1,6 +1,6 @@
 import './style.css';
 import { getLanguage, setLanguage, tr } from './i18n.js';
-import { parseText, serializeData, resolveFilePreference, parsers, getCsvDelimiter } from './parsers.js';
+import { parseText, serializeData, resolveFilePreference, parsers, getCsvDelimiter, fidelityNoteKey } from './parsers.js';
 import { clone, kind, firstUsable, fieldSamples, blankFor, validateValue, assertRootArray } from './model.js';
 import { initViewTabs } from './views.js';
 import { highlight } from './highlight.js';
@@ -54,6 +54,17 @@ function currentOutput() {
 }
 
 const formatLabel = (format) => ({ json: 'JSON', json5: 'JSON5', ndjson: 'NDJSON', yaml: 'YAML', csv: 'CSV', tsv: 'TSV' }[format] ?? String(format).toUpperCase());
+
+// Formats that cannot round-trip the source document lose comments or
+// formatting on export. The note follows the effective download format, so it
+// appears when the user switches output to YAML, JSON5, or CSV/TSV.
+function refreshFidelityNote() {
+  const note = $('fidelityNote');
+  if (!note) return;
+  const key = loaded ? fidelityNoteKey(currentOutput().format) : null;
+  note.hidden = !key;
+  note.textContent = key ? tr(key) : '';
+}
 
 function refreshDownloadBtn() {
   if (!loaded) {
@@ -176,6 +187,7 @@ function applyTranslations(draft = null) {
   renderSupport();
   refreshInputFormatLabel();
   refreshDownloadBtn();
+  refreshFidelityNote();
   syncPretty();
   itemModal.retranslate();
 }
@@ -535,6 +547,7 @@ function renderItems() {
   $('downloadBtn').disabled = !loaded;
   $('copyBtn').disabled = !loaded;
   refreshDownloadBtn();
+  refreshFidelityNote();
   syncPretty();
   syncRaw();
 }

@@ -10,12 +10,13 @@ This roadmap is a proposal, not a promise or committed schedule.
 - [x] Recursive nested object and array controls
 - [x] Local-first processing and optional donation links
 - [x] Node test suite for parsers, model, highlight, and translations
+- [x] Continuous integration running the suite, the syntax check, and the build
+- [x] Visible warning that comments and original formatting do not round-trip
 - [ ] Browser-level regression tests for all workflows
 - [ ] Accessibility review and manual mobile testing
 
 ## Phase 1 — Stability and publishing
-- Add a browser test suite for the UI workflows (rendering, drag and drop, modal, downloads) on top of the existing `pnpm test` unit suite.
-- Add a clear warning that YAML comments and original formatting do not round-trip.
+- Add a browser test suite for the UI workflows (rendering, drag and drop, modal, downloads) on top of the existing `pnpm test` unit suite, now that CI can run it.
 - Test keyboard-only operation and touch/mobile layout.
 - Publish a public repository and connect continuous deployment to a static hosting service.
 - Configure real donation URLs only after verifying provider payouts from the maintainer's account and location.

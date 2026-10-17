@@ -11,6 +11,7 @@ import {
   serializeData,
   getCsvDelimiter,
   resolveFilePreference,
+  fidelityNoteKey,
   inferCell,
   parsers,
 } from '../src/parsers.js';
@@ -324,6 +325,24 @@ describe('file preference', () => {
   eq('.ndjson', name('data.ndjson'), 'ndjson');
   eq('unknown extension stays auto', name('data.bin'), 'auto');
   eq('explicit selection wins', resolveFilePreference({ name: 'data.json' }, 'yaml'), 'yaml');
+});
+
+// --- parsers: fidelity warnings ---------------------------------------------
+
+describe('fidelity warnings', () => {
+  eq('yaml warns about comments', fidelityNoteKey('yaml'), 'fidelityYAML');
+  eq('json5 warns about comments', fidelityNoteKey('json5'), 'fidelityJSON5');
+  eq('csv warns about normalization', fidelityNoteKey('csv'), 'fidelityCSV');
+  eq('tsv shares the csv warning', fidelityNoteKey('tsv'), 'fidelityCSV');
+  eq('json loses nothing but whitespace', fidelityNoteKey('json'), null);
+  eq('ndjson loses nothing but whitespace', fidelityNoteKey('ndjson'), null);
+  eq('unknown format warns about nothing', fidelityNoteKey('nope'), null);
+  // Every warning key must exist in both languages.
+  eq('warnings are translated', ['fidelityYAML', 'fidelityJSON5', 'fidelityCSV']
+    .every((key) => Boolean(translations.en[key]) && Boolean(translations.es[key])), true);
+  // The warning must describe the loss that actually happens.
+  check('yaml really drops comments', !serializeData([{ a: 1 }], 'yaml', 'json').text.includes('#'));
+  check('json5 really drops comments', !serializeData([{ a: 1 }], 'json5', 'json').text.includes('//'));
 });
 
 // --- model ------------------------------------------------------------------

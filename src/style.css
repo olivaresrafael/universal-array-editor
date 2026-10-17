@@ -15,6 +15,9 @@
 .format-control{display:grid;gap:6px;min-width:165px}
 .format-control select{border:1px solid #cbd5e1;border-radius:9px;background:#fff;padding:9px 10px;color:var(--ink)}
 .field-help{font-size:.78rem;color:var(--muted);line-height:1.45}
+.fidelity-note{display:flex;gap:8px;align-items:flex-start;margin-top:12px;padding:10px 12px;border:1px solid #f0d9a8;background:#fff8ea;color:#6b4e12;border-radius:10px;font-size:.79rem;line-height:1.45}
+.fidelity-note::before{content:"⚠";flex:none;font-size:.95rem;line-height:1.35}
+.fidelity-note[hidden]{display:none}
 @media(max-width:650px){.input-methods{grid-template-columns:1fr}.locale-control{margin:12px 0 0;width:100%}.format-control{flex:1}}
 
 /* View tabs: List | Prettify | Raw */

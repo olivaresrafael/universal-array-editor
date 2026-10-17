@@ -206,6 +206,14 @@ export function serializeData(data, outputSetting, inputSourceFormat) {
   return { text: parser.stringify(data), format: parser.id };
 }
 
+// Formats that cannot round-trip the source document: exporting regenerates the
+// text from the edited values, so comments and original formatting are lost.
+// Returns the i18n key of the warning to show, or null when nothing is lost
+// beyond whitespace/indentation.
+export function fidelityNoteKey(format) {
+  return { yaml: 'fidelityYAML', json5: 'fidelityJSON5', csv: 'fidelityCSV', tsv: 'fidelityCSV' }[format] ?? null;
+}
+
 export function resolveFilePreference(file, selectedFormat) {
   if (selectedFormat !== 'auto') return selectedFormat;
   const filename = file?.name?.toLowerCase() || '';

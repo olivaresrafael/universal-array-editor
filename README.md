@@ -2,7 +2,7 @@
 
 A free, open-source, bilingual (English / Spanish) browser tool for reordering and editing arrays of objects in **JSON, JSON5, NDJSON, CSV/TSV, and YAML**. You can upload a local file or paste plain text, edit objects and nested array values, reorder items, and download the result in JSON, JSON5, NDJSON, CSV, TSV, or YAML.
 
-**Privacy by design:** the document is parsed and edited in your browser. This application has no backend and does not upload your content. The hosting provider may still collect basic access logs under its own policies. Comments and source formatting are normalized when an output document is generated.
+**Privacy by design:** the document is parsed and edited in your browser. This application has no backend and does not upload your content. The hosting provider may still collect basic access logs under its own policies. The downloaded file is regenerated from the edited values, so comments and source formatting are not preserved; the app shows a warning when the chosen download format cannot round-trip them.
 
 ## Features
 
@@ -16,6 +16,7 @@ A free, open-source, bilingual (English / Spanish) browser tool for reordering a
 - Add/remove array elements through individual controls, including nested arrays.
 - Switch the interface between English and Spanish; the preference is stored locally in the browser when storage is available.
 - Optional voluntary donation links, configured by the maintainer. No features are paywalled.
+- A visible warning when the download format cannot preserve comments or original formatting.
 
 ## Requirements
 
@@ -38,6 +39,8 @@ pnpm test
 pnpm run build
 pnpm run preview
 ```
+
+Or run all three checks at once with `pnpm run verify`. The same steps run automatically on every push and pull request via `.github/workflows/ci.yml`.
 
 The static production site is generated in `dist/` and can be hosted on any static host. For Git-based deployment, connect this repository to a static hosting provider and set the build command to `pnpm run build` and the output directory to `dist`.
 

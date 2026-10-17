@@ -12,6 +12,10 @@ pnpm run build    # production bundle
 
 A successful build proves that Vite can bundle the project, and the unit suite proves the pure logic, but neither replaces browser testing of the UI.
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push to `main` and on every pull request: `pnpm install --frozen-lockfile`, then `pnpm test`, `pnpm run check`, and `pnpm run build`. Locally the same three steps are available as `pnpm run verify`.
+
 ## Manual regression checklist
 
 ### Input and parsing
@@ -75,6 +79,13 @@ A successful build proves that Vite can bundle the project, and the unit suite p
 - [ ] Test at a narrow mobile viewport.
 - [ ] Inspect network activity: document content must not be sent to a server.
 - [ ] Verify donation links are hidden when not configured and open safely when configured.
+
+### Fidelity warning
+- [ ] Load nothing and confirm the fidelity note is hidden.
+- [ ] Load JSON and confirm the note stays hidden while the download format is JSON or NDJSON.
+- [ ] Switch the download format to YAML, JSON5, CSV, or TSV and confirm the note appears.
+- [ ] Load a YAML file with "Same as input" and confirm the note appears.
+- [ ] Switch English → Spanish and confirm the note text is translated.
 
 ## Known behavior worth verifying manually
 

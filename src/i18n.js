@@ -69,6 +69,9 @@ export const translations = {
     ndjsonLineInvalid: 'Line {line} is not valid JSON. NDJSON needs one complete JSON object per line.',
     ndjsonLineNotObject: 'Line {line} must be a JSON object, not a number, string, null, or array.',
     ndjsonEmpty: 'NDJSON input needs at least one JSON object on a single line.',
+    fidelityYAML: 'YAML comments and the original indentation are not preserved: the downloaded file is regenerated from the edited values.',
+    fidelityJSON5: 'JSON5 comments are not preserved: the downloaded file is regenerated from the edited values.',
+    fidelityCSV: 'CSV quoting, line breaks inside cells, and column order are normalized on download. Fields a record does not have are written as empty cells.',
   },
   es: {
     freeTool: 'Herramienta gratuita y de código abierto', language: 'Idioma',
@@ -140,6 +143,9 @@ export const translations = {
     ndjsonLineInvalid: 'La línea {line} no es JSON válido. NDJSON necesita un objeto JSON completo por línea.',
     ndjsonLineNotObject: 'La línea {line} debe ser un objeto JSON, no un número, texto, null ni un arreglo.',
     ndjsonEmpty: 'NDJSON necesita al menos un objeto JSON en una sola línea.',
+    fidelityYAML: 'Los comentarios YAML y la sangría original no se conservan: el archivo descargado se regenera a partir de los valores editados.',
+    fidelityJSON5: 'Los comentarios JSON5 no se conservan: el archivo descargado se regenera a partir de los valores editados.',
+    fidelityCSV: 'Al descargar se normalizan las comillas, los saltos de línea dentro de las celdas y el orden de las columnas. Los campos que un registro no tenga se escriben como celdas vacías.',
   },
 };
 
