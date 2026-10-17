@@ -102,10 +102,19 @@ export function highlightYaml(text) {
     .join('\n');
 }
 
+export function highlightNdjson(text) {
+  // NDJSON is JSON per line, so each record is highlighted independently.
+  // A trailing newline is not a record, matching highlightDelimited.
+  const lines = String(text).replace(/\r\n?/g, '\n').split('\n');
+  if (lines.length && lines[lines.length - 1] === '') lines.pop();
+  return lines.map((line) => highlightJson(line)).join('\n');
+}
+
 export function highlight(text, format, csvDelimiter = ',') {
   if (format === 'yaml') return highlightYaml(text);
   if (format === 'csv') return highlightDelimited(text, csvDelimiter || ',');
   if (format === 'tsv') return highlightDelimited(text, '\t');
+  if (format === 'ndjson') return highlightNdjson(text);
   return highlightJson(text);
 }
 

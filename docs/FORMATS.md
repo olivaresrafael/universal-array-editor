@@ -6,6 +6,7 @@
 | --- | --- | --- | --- | --- |
 | JSON | Yes | Yes | Yes | Native browser parser; standard JSON only. |
 | JSON5 | Yes | Yes | Yes | Parsed and serialized with the `json5` package; supports comments, trailing commas, single quotes, and unquoted keys. Output is normalized JSON5 (comments are not preserved). |
+| NDJSON / JSON Lines (`.jsonl`, `.ndjson`) | Yes | Yes | Yes | One JSON object per line, parsed with `JSON.parse`. See the NDJSON policy below. |
 | CSV / TSV | Yes | Yes | Yes | Parsed and serialized with `papaparse`. See the CSV policy below. |
 | YAML | Yes | Yes | Yes | Parsed and serialized with `js-yaml`; comments and original whitespace are not preserved. |
 | `.txt` containing a supported document | Yes | Yes | N/A | Input must still parse as a supported document. |
@@ -21,17 +22,25 @@ The top-level value must be an array/sequence of objects. This is intentionally 
 - **Export:** nested objects/arrays are written as JSON inside the cell; null is written as `null`; missing fields become empty cells. Headers are the union of all record keys, in first-seen order.
 - Quoting, line breaks inside quoted cells, and formatting are normalized on export.
 
+## NDJSON / JSON Lines policy
+
+- **Shape:** one complete JSON object per line. Lines that are empty or contain only whitespace are ignored, so trailing newlines and blank separators are harmless.
+- **Per-line parsing:** each line is parsed with `JSON.parse`, so JSON5 relaxations (comments, trailing commas, unquoted keys, single quotes) are **not** accepted inside NDJSON. Use the JSON5 format for those documents.
+- **Object rule:** a line that parses to a number, string, boolean, `null`, or an array is rejected, because every root item must be an object. Nested objects and arrays inside a record are unrestricted.
+- **Errors:** a failing line reports its 1-based line number, counting blank lines, in both English and Spanish.
+- **Export:** records are written compactly (no indentation) with `JSON.stringify`, one per line, so a record never spans two lines. Key order and types are preserved; an empty array exports as an empty file.
+- **Auto-detect:** tried after JSON and JSON5 and before CSV/TSV. It requires **2+ records**, so a single-line document stays JSON/JSON5; and it runs before the CSV sniffer because a record containing commas would otherwise look like 2+ delimited columns. A `.jsonl` or `.ndjson` file forces NDJSON regardless.
+
 ## Proposed additions
 
 | Priority | Format | Why it could help | Design questions / trade-offs |
 | --- | --- | --- | --- |
-| 1 | NDJSON / JSON Lines (`.jsonl`) | Common for logs and data pipelines; one JSON object per line. | Define whether blank lines are ignored, how line-level errors are reported, and how exports preserve one-record-per-line layout. |
-| 2 | TOML | Helpful for configuration editing, especially arrays of tables. | TOML's common shape is a mapping/table rather than a root list; add a clear adapter for arrays of tables and declare which structures are editable. |
-| 3 | XML | Needed in older enterprise systems and integrations. | XML-to-object mappings are not universal: attributes, repeated tags, namespaces, text nodes, and ordering require explicit mapping rules. Avoid promising lossless round-tripping initially. |
-| 4 | `.env` / key-value config | Familiar to developers and useful for small config lists. | Does not naturally represent an array of objects; better as a separate key-value editor or a later dedicated mode, not a simple extension of the current root-array flow. |
+| 1 | TOML | Helpful for configuration editing, especially arrays of tables. | TOML's common shape is a mapping/table rather than a root list; add a clear adapter for arrays of tables and declare which structures are editable. |
+| 2 | XML | Needed in older enterprise systems and integrations. | XML-to-object mappings are not universal: attributes, repeated tags, namespaces, text nodes, and ordering require explicit mapping rules. Avoid promising lossless round-tripping initially. |
+| 3 | `.env` / key-value config | Familiar to developers and useful for small config lists. | Does not naturally represent an array of objects; better as a separate key-value editor or a later dedicated mode, not a simple extension of the current root-array flow. |
 
 ## Recommended product decision
 
-The current format set is JSON, JSON5, CSV/TSV, and YAML. If user feedback confirms demand, implement NDJSON next (minimal conceptual change over the line-based CSV work). TOML and XML need explicit mapping designs before implementation.
+The current format set is JSON, JSON5, NDJSON, CSV/TSV, and YAML. If user feedback confirms demand, consider TOML next. TOML and XML need explicit mapping designs before implementation.
 
 Each new format should have a parser/serializer abstraction, fixtures, bilingual errors, and a documented fidelity statement before release. Do not silently coerce unknown structures.

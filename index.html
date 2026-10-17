@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#172554">
-  <meta name="description" content="A free, private JSON and YAML array editor. Reorder, edit, paste, and download structured data in your browser.">
-  <title>Array Editor — JSON & YAML</title>
+  <meta name="description" content="A free, private array editor for JSON, JSON5, NDJSON, CSV/TSV, and YAML. Reorder, edit, paste, and download structured data in your browser.">
+  <title>Array Editor — JSON, YAML & more</title>
 </head>
 <body>
 <header class="hero">
@@ -23,21 +23,21 @@
   <section class="panel">
     <div class="section-heading"><div class="step">1</div><div><h2 data-i18n="loadTitle">Load or paste your data</h2><p data-i18n="loadDescription">The root value must be an array of objects.</p></div></div>
     <div class="toolbar">
-      <label class="file-label" for="fileInput" data-i18n="chooseFile">📂 Choose JSON/YAML file</label>
-      <input id="fileInput" type="file" accept=".json,.json5,.csv,.tsv,.yaml,.yml,.txt,application/json,application/yaml,text/yaml,text/csv,text/plain">
+      <label class="file-label" for="fileInput" data-i18n="chooseFile">📂 Choose data file</label>
+      <input id="fileInput" type="file" accept=".json,.json5,.jsonl,.ndjson,.csv,.tsv,.yaml,.yml,.txt,application/json,application/yaml,application/x-ndjson,text/yaml,text/csv,text/plain">
       <button id="sampleBtn" class="secondary" type="button" data-i18n="sampleButton">Try an example</button>
       <button id="downloadBtn" class="primary" type="button" disabled>⬇ Download output</button>
     </div>
     <div class="format-row">
-      <div class="format-control"><label for="inputFormat" data-i18n="inputFormat">Input format</label><select id="inputFormat"><option value="auto" data-i18n="autoDetect">Auto-detect</option><option value="json">JSON</option><option value="json5">JSON5</option><option value="yaml">YAML</option><option value="csv">CSV</option><option value="tsv">TSV</option></select></div>
-      <div class="format-control"><label for="outputFormat" data-i18n="outputFormat">Download format</label><select id="outputFormat"><option value="source" data-i18n="sameAsInput">Same as input</option><option value="json">JSON</option><option value="json5">JSON5</option><option value="yaml">YAML</option><option value="csv">CSV</option><option value="tsv">TSV</option></select></div>
+      <div class="format-control"><label for="inputFormat" data-i18n="inputFormat">Input format</label><select id="inputFormat"><option value="auto" data-i18n="autoDetect">Auto-detect</option><option value="json">JSON</option><option value="json5">JSON5</option><option value="ndjson">NDJSON</option><option value="yaml">YAML</option><option value="csv">CSV</option><option value="tsv">TSV</option></select></div>
+      <div class="format-control"><label for="outputFormat" data-i18n="outputFormat">Download format</label><select id="outputFormat"><option value="source" data-i18n="sameAsInput">Same as input</option><option value="json">JSON</option><option value="json5">JSON5</option><option value="ndjson">NDJSON</option><option value="yaml">YAML</option><option value="csv">CSV</option><option value="tsv">TSV</option></select></div>
     </div>
     <div class="input-methods">
       <div class="input-method">
-        <label for="pastedText" data-i18n="pasteLabel">Paste JSON/YAML text</label>
+        <label for="pastedText" data-i18n="pasteLabel">Paste text</label>
         <textarea id="pastedText" spellcheck="false" data-i18n-placeholder="pastePlaceholder" placeholder="Paste an array of objects here…"></textarea>
         <button id="parseTextBtn" class="primary" type="button" data-i18n="loadPastedText">Load pasted text</button>
-        <div class="field-help" data-i18n="pasteHelp">Choose Auto-detect, JSON, or YAML above. The input is not sent to a server.</div>
+        <div class="field-help" data-i18n="pasteHelp">Choose Auto-detect, JSON, JSON5, NDJSON, YAML, or CSV/TSV above. The input is not sent to a server.</div>
       </div>
       <div class="input-method">
         <label data-i18n="fileLabel">Select a local file</label>

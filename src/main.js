@@ -53,7 +53,7 @@ function currentOutput() {
   }
 }
 
-const formatLabel = (format) => ({ json: 'JSON', json5: 'JSON5', yaml: 'YAML', csv: 'CSV', tsv: 'TSV' }[format] ?? String(format).toUpperCase());
+const formatLabel = (format) => ({ json: 'JSON', json5: 'JSON5', ndjson: 'NDJSON', yaml: 'YAML', csv: 'CSV', tsv: 'TSV' }[format] ?? String(format).toUpperCase());
 
 function refreshDownloadBtn() {
   if (!loaded) {
@@ -110,7 +110,7 @@ function refreshInputFormatLabel() {
   const auto = document.querySelector('#inputFormat option[value="auto"]');
   if (!auto) return;
   const showDetected = $('inputFormat').value === 'auto' && loaded;
-  const formatKeys = { yaml: 'formatYAML', json5: 'formatJSON5', csv: 'formatCSV', tsv: 'formatTSV' };
+  const formatKeys = { yaml: 'formatYAML', json5: 'formatJSON5', ndjson: 'formatNDJSON', csv: 'formatCSV', tsv: 'formatTSV' };
   const formatKey = formatKeys[inputSourceFormat] ?? 'formatJSON';
   auto.textContent = tr('autoDetect') + (showDetected ? ` (${tr(formatKey)})` : '');
 }
@@ -669,7 +669,7 @@ $('fileInput').addEventListener('change', async (event) => {
   try {
     const preference = resolveFilePreference(file, $('inputFormat').value);
     const text = await file.text();
-    loadFromText(text, file.name.replace(/\.(json5?|ya?ml|csv|tsv|txt)$/i, '') + '-edited', preference);
+    loadFromText(text, file.name.replace(/\.(json5?|jsonl|ndjson|ya?ml|csv|tsv|txt)$/i, '') + '-edited', preference);
     $('pastedText').value = text;
   } catch (error) {
     status(`${tr('fileReadError')} ${error?.message || ''}`.trim(), 'error');

@@ -31,4 +31,4 @@ pnpm run build
 - Do not include real customer data, secrets, or payment credentials in fixtures.
 
 ## Scope policy
-The editor targets arrays whose top-level elements are objects. Supported formats are JSON, JSON5, CSV/TSV, and YAML. A new format must ship with a documented mapping strategy in `docs/FORMATS.md` and fixtures in `tests/fixtures/`, because tabular and markup formats do not represent nested objects in the same way.
+The editor targets arrays whose top-level elements are objects. Supported formats are JSON, JSON5, NDJSON, CSV/TSV, and YAML. A new format must ship with a documented mapping strategy in `docs/FORMATS.md` and fixtures in `tests/fixtures/`, because tabular and markup formats do not represent nested objects in the same way.

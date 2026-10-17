@@ -8,7 +8,7 @@ pnpm test         # node unit suite: parsers, model, highlight, translations
 pnpm run build    # production bundle
 ```
 
-`pnpm test` runs `tests/run-tests.mjs`, which covers everything that does not need a DOM: format detection, the CSV/TSV cell policy, round-trips between all format pairs, root-array validation, form value validation, syntax highlighting escaping, and English/Spanish translation parity. It uses the synthetic fixtures in `tests/fixtures/`.
+`pnpm test` runs `tests/run-tests.mjs`, which covers everything that does not need a DOM: format detection, the CSV/TSV cell policy, NDJSON line rules and line-numbered errors, round-trips between all format pairs, root-array validation, form value validation, syntax highlighting escaping, and English/Spanish translation parity. It uses the synthetic fixtures in `tests/fixtures/`.
 
 A successful build proves that Vite can bundle the project, and the unit suite proves the pure logic, but neither replaces browser testing of the UI.
 
@@ -19,6 +19,12 @@ A successful build proves that Vite can bundle the project, and the unit suite p
 - [ ] Upload a valid `.json5` file with comments, trailing commas, and unquoted keys.
 - [ ] Upload a valid `.csv` file (numbers, booleans, empty cells, quoted commas, nested JSON cell).
 - [ ] Upload a valid `.tsv` file.
+- [ ] Upload a valid `.jsonl` file; confirm Auto-detect reports NDJSON and the format label shows `(NDJSON)`.
+- [ ] Upload a `.ndjson` file with a blank line and confirm the blank line is ignored.
+- [ ] Paste NDJSON with a broken line and confirm the error names the line number, in both languages.
+- [ ] Paste a single-line JSON document and confirm it stays JSON, not NDJSON.
+- [ ] Paste NDJSON records containing commas and confirm it is not detected as CSV.
+- [ ] Confirm NDJSON rejects a line holding an array or a number.
 - [ ] Paste CSV text and confirm Auto-detect reports CSV; paste single-column text and confirm it does not load as CSV.
 - [ ] Verify `01234`-style cells keep leading zeros and `TRUE`/`NULL` map to boolean/null.
 - [ ] Upload a valid `.yaml` and `.yml` sequence of objects.
@@ -46,7 +52,8 @@ A successful build proves that Vite can bundle the project, and the unit suite p
 - [ ] Preview and download YAML, then parse it again.
 - [ ] Preview and download JSON5, then parse it again.
 - [ ] Preview and download CSV, then parse it again; confirm nested values and `null` round-trip.
-- [ ] Set output format to “Same as input” for JSON, JSON5, CSV, TSV, and YAML.
+- [ ] Set output format to “Same as input” for JSON, JSON5, NDJSON, CSV, TSV, and YAML.
+- [ ] Download NDJSON and confirm one record per line with a `.jsonl` extension.
 - [ ] Confirm that the download extension matches the actual format.
 - [ ] Verify the original local file is never modified.
 
@@ -72,6 +79,8 @@ A successful build proves that Vite can bundle the project, and the unit suite p
 ## Known behavior worth verifying manually
 
 - A single-column table is never auto-detected as CSV (it would be ambiguous with YAML), so it must be loaded with an explicit CSV selection.
+- A single-line document is never auto-detected as NDJSON (it would be ambiguous with JSON/JSON5), so it must be loaded with an explicit NDJSON selection.
+- CSV/TSV export writes an empty cell for a field a record does not have, so records with different key sets do not round-trip back unchanged.
 - Clearing a boolean field's text input keeps it `false` rather than becoming `null`.
 
 ## Fixtures

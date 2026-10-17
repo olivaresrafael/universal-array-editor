@@ -31,6 +31,14 @@ export const parsers = {
     mime: 'application/yaml;charset=utf-8',
     extension: '.yaml',
   },
+  ndjson: {
+    id: 'ndjson',
+    extensions: ['.jsonl', '.ndjson'],
+    parse: (text) => parseNdjsonText(text),
+    stringify: (data) => (data.length ? `${data.map((item) => JSON.stringify(item)).join('\n')}\n` : ''),
+    mime: 'application/x-ndjson;charset=utf-8',
+    extension: '.jsonl',
+  },
   csv: {
     id: 'csv',
     extensions: ['.csv'],
@@ -126,6 +134,9 @@ export function parseText(text, preference = 'auto') {
   }
   if (chosen === 'csv' || chosen === 'tsv') return parseCsvText(text, chosen === 'tsv' ? '\t' : '');
   // Auto-detect: strictest first so the detected format is the most specific one.
+  // NDJSON needs 2+ records, otherwise a single-line JSON/JSON5 document would be
+  // ambiguous with it; it is tried before CSV/TSV because a NDJSON record with
+  // commas would sniff as 2+ delimited columns.
   // CSV/TSV requires 2+ columns here so YAML documents are never hijacked;
   // single-column files need an explicit CSV selection.
   try {
@@ -134,6 +145,9 @@ export function parseText(text, preference = 'auto') {
     try {
       return { parsed: parsers.json5.parse(text), format: 'json5' };
     } catch {
+      try {
+        if (countNdjsonRecords(text) >= 2) return { parsed: parsers.ndjson.parse(text), format: 'ndjson' };
+      } catch { /* Not one JSON object per line: keep looking. */ }
       try {
         const { rows } = parseDelimited(text, '');
         if (rows.length < 2 || rows[0].length < 2) throw new Error(tr('csvNeedsRows'));
@@ -147,6 +161,35 @@ export function parseText(text, preference = 'auto') {
       }
     }
   }
+}
+
+// NDJSON / JSON Lines: one JSON object per line. Blank lines are ignored and
+// every record must be an object, so the result satisfies assertRootArray.
+// Errors report the 1-based line number.
+function countNdjsonRecords(text) {
+  return String(text)
+    .split(/\r\n?|\n/)
+    .filter((line) => line.trim()).length;
+}
+
+function parseNdjsonText(text) {
+  const records = [];
+  const lines = String(text).split(/\r\n?|\n/);
+  lines.forEach((line, index) => {
+    if (!line.trim()) return;
+    let value;
+    try {
+      value = JSON.parse(line);
+    } catch {
+      throw new Error(tr('ndjsonLineInvalid', { line: index + 1 }));
+    }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new Error(tr('ndjsonLineNotObject', { line: index + 1 }));
+    }
+    records.push(value);
+  });
+  if (!records.length) throw new Error(tr('ndjsonEmpty'));
+  return records;
 }
 
 function parseCsvText(text, forcedDelimiter) {
@@ -168,6 +211,7 @@ export function resolveFilePreference(file, selectedFormat) {
   const filename = file?.name?.toLowerCase() || '';
   if (filename.endsWith('.json')) return 'json';
   if (filename.endsWith('.json5')) return 'json5';
+  if (filename.endsWith('.jsonl') || filename.endsWith('.ndjson')) return 'ndjson';
   if (filename.endsWith('.csv')) return 'csv';
   if (filename.endsWith('.tsv')) return 'tsv';
   if (filename.endsWith('.yaml') || filename.endsWith('.yml')) return 'yaml';

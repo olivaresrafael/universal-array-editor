@@ -15,7 +15,7 @@ import {
   parsers,
 } from '../src/parsers.js';
 import { assertRootArray, fieldSamples, blankFor, validateValue, clone, kind } from '../src/model.js';
-import { highlight, escapeHtml } from '../src/highlight.js';
+import { highlight, escapeHtml, highlightJson } from '../src/highlight.js';
 import { translations, tr, setLanguage, getLanguage } from '../src/i18n.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -81,7 +81,7 @@ const throwsMessage = (name, fn, expectedMessage) => {
 describe('registry', () => {
   eq('every parser exposes the interface', Object.values(parsers).every((p) => p.id && p.parse && p.stringify && p.mime && p.extension), true);
   eq('parser ids match keys', Object.entries(parsers).every(([key, p]) => key === p.id), true);
-  eq('supported formats', Object.keys(parsers).sort(), ['csv', 'json', 'json5', 'tsv', 'yaml']);
+  eq('supported formats', Object.keys(parsers).sort(), ['csv', 'json', 'json5', 'ndjson', 'tsv', 'yaml']);
 });
 
 // --- parsers: fixtures ------------------------------------------------------
@@ -90,6 +90,7 @@ describe('fixture detection', () => {
   eq('json', parseText(fixture('sample.json'), 'auto').format, 'json');
   eq('json5', parseText(fixture('sample.json5'), 'auto').format, 'json5');
   eq('yaml', parseText(fixture('sample.yaml'), 'auto').format, 'yaml');
+  eq('ndjson', parseText(fixture('sample.jsonl'), 'auto').format, 'ndjson');
   eq('csv', parseText(fixture('sample.csv'), 'auto').format, 'csv');
   eq('tsv', parseText(fixture('sample.tsv'), 'auto').format, 'tsv');
   eq('json fixture content', parseText(fixture('sample.json'), 'auto').parsed[0].tags, ['one', 'two']);
@@ -200,22 +201,88 @@ describe('tsv', () => {
   eq('delimiter remembered', getCsvDelimiter(), '\t');
 });
 
+// --- parsers: ndjson --------------------------------------------------------
+
+describe('ndjson records', () => {
+  const { parsed, format } = parseText(fixture('sample.jsonl'), 'auto');
+  eq('detected', format, 'ndjson');
+  eq('record count', parsed.length, 3);
+  eq('nested object record', parsed[0].payload, { user: 'alice', retries: 0 });
+  eq('booleans kept', parsed[1].ok, false);
+  eq('arrays kept', parsed[2].tags, ['a', 'b']);
+  eq('blank lines ignored', parseText('{"a":1}\n\n\n{"a":2}\n', 'ndjson').parsed, [{ a: 1 }, { a: 2 }]);
+  eq('crlf line endings', parseText('{"a":1}\r\n{"a":2}\r\n', 'ndjson').parsed, [{ a: 1 }, { a: 2 }]);
+  eq('no trailing newline', parseText('{"a":1}\n{"a":2}', 'ndjson').parsed.length, 2);
+  eq('nested objects are allowed', parseText('{"a":{"b":{"c":1}}}\n{"a":{"b":2}}\n', 'ndjson').parsed[0].a.b.c, 1);
+});
+
+describe('ndjson errors report the line', () => {
+  throwsMessage('invalid json line 2', () => parseText('{"a":1}\n{"a":}\n{"a":3}', 'ndjson'), 'Line 2 is not valid JSON. NDJSON needs one complete JSON object per line.');
+  throwsMessage('line number counts blank lines', () => parseText('{"a":1}\n\n{"a":}\n', 'ndjson'), 'Line 3 is not valid JSON. NDJSON needs one complete JSON object per line.');
+  throwsMessage('array line rejected', () => parseText('{"a":1}\n[1,2]', 'ndjson'), 'Line 2 must be a JSON object, not a number, string, null, or array.');
+  throwsMessage('scalar line rejected', () => parseText('{"a":1}\n42', 'ndjson'), 'Line 2 must be a JSON object, not a number, string, null, or array.');
+  throwsMessage('null line rejected', () => parseText('null\n42', 'ndjson'), 'Line 1 must be a JSON object, not a number, string, null, or array.');
+  // Whitespace-only input is rejected before format parsing, which is the shared
+  // guard for every format.
+  throwsMessage('only blank lines', () => parseText('\n\n', 'ndjson'), 'Paste JSON, JSON5, NDJSON, YAML, or CSV text first.');
+  eq('spanish message is used in spanish mode', (() => {
+    setLanguage('es');
+    try {
+      return (() => {
+        try { parseText('{"a":}\n{"b":2}', 'ndjson'); return 'no error'; } catch (error) { return error.message; }
+      })();
+    } finally { setLanguage('en'); }
+  })(), 'La línea 1 no es JSON válido. NDJSON necesita un objeto JSON completo por línea.');
+});
+
+describe('ndjson detection boundaries', () => {
+  eq('single record is ambiguous with json', parseText('{"a":1}', 'auto').format, 'json');
+  eq('single record with trailing comma is json5', parseText('{"a":1,}', 'auto').format, 'json5');
+  eq('single record forced as ndjson', parseText('{"a":1}', 'ndjson').parsed, [{ a: 1 }]);
+  eq('two records are ndjson, not yaml', parseText('{"a":1}\n{"a":2}', 'auto').format, 'ndjson');
+  eq('commas inside records do not sniff as csv', parseText('{"a":1,"b":2}\n{"a":3,"b":4}', 'auto').format, 'ndjson');
+  eq('yaml list of objects is still yaml', parseText('- a: 1\n- a: 2', 'auto').format, 'yaml');
+  eq('yaml nested document is still yaml', parseText('root:\n  a: 1\n  b: 2', 'auto').format, 'yaml');
+  eq('json array is still json', parseText('[{"a":1},{"a":2}]', 'auto').format, 'json');
+  eq('csv is still csv', parseText('a,b\n1,2\n3,4', 'auto').format, 'csv');
+});
+
+describe('ndjson output', () => {
+  const data = [{ id: 1, name: 'First' }, { id: 2, name: 'Second' }];
+  const { text, format } = serializeData(data, 'ndjson', 'json');
+  eq('format reported', format, 'ndjson');
+  eq('one compact record per line', text, '{"id":1,"name":"First"}\n{"id":2,"name":"Second"}\n');
+  // A newline inside a value is escaped, so one record stays on one line.
+  eq('embedded newline is escaped', serializeData([{ a: 'x\ny' }], 'ndjson', 'json').text, '{"a":"x\\ny"}\n');
+  eq('re-parses to the same records', parseText(text, 'auto').parsed, data);
+  eq('same as input keeps ndjson', serializeData(data, 'source', 'ndjson').format, 'ndjson');
+});
+
 // --- parsers: serialization -------------------------------------------------
 
 describe('round-trips', () => {
   const sources = {
     json: fixture('sample.json'),
     json5: fixture('sample.json5'),
+    ndjson: fixture('sample.jsonl'),
     yaml: fixture('sample.yaml'),
     csv: fixture('sample.csv'),
     tsv: fixture('sample.tsv'),
   };
+  // CSV/TSV export writes an empty cell for a missing field, so records that
+  // do not share the same keys do not round-trip back to the exact same shape.
+  const headersOf = (data) => [...new Set(data.flatMap((obj) => Object.keys(obj)))];
+  const normalizeForDelimited = (data) => {
+    const headers = headersOf(data);
+    return data.map((obj) => Object.fromEntries(headers.map((key) => [key, key in obj ? obj[key] : ''])));
+  };
   for (const [format, text] of Object.entries(sources)) {
     const data = parseText(text, 'auto').parsed;
-    for (const target of ['json', 'json5', 'yaml', 'csv', 'tsv']) {
+    for (const target of ['json', 'json5', 'ndjson', 'yaml', 'csv', 'tsv']) {
       const out = serializeData(data, target, format);
-      const back = parseText(out.text, target === 'csv' && target !== 'tsv' ? 'auto' : target).parsed;
-      eq(`${format} -> ${target}`, back, data);
+      const back = parseText(out.text, target === 'csv' || target === 'ndjson' ? 'auto' : target).parsed;
+      const expected = target === 'csv' || target === 'tsv' ? normalizeForDelimited(data) : data;
+      eq(`${format} -> ${target}`, back, expected);
     }
   }
 });
@@ -227,6 +294,7 @@ describe('serialize metadata', () => {
   eq('unknown format falls back to json', serializeData(data, 'nope', 'json').format, 'json');
   eq('json ends with newline', serializeData(data, 'json', 'json').text.endsWith('\n'), true);
   eq('empty array exports empty csv', serializeData([], 'csv', 'csv').text, '');
+  eq('empty array exports empty ndjson', serializeData([], 'ndjson', 'ndjson').text, '');
   eq('empty array exports empty json', serializeData([], 'json', 'json').text, '[]\n');
 });
 
@@ -252,6 +320,8 @@ describe('file preference', () => {
   eq('.yml', name('data.yml'), 'yaml');
   eq('uppercase extension', name('DATA.JSON'), 'json');
   eq('.txt stays auto', name('data.txt'), 'auto');
+  eq('.jsonl', name('data.jsonl'), 'ndjson');
+  eq('.ndjson', name('data.ndjson'), 'ndjson');
   eq('unknown extension stays auto', name('data.bin'), 'auto');
   eq('explicit selection wins', resolveFilePreference({ name: 'data.json' }, 'yaml'), 'yaml');
 });
@@ -371,6 +441,18 @@ describe('highlight: delimited', () => {
   const quoted = 'a\n"he said ""hi"""\n';
   eq('escaped quotes kept', stripHtml(highlight(quoted, 'csv', ',')), quoted.trimEnd());
   eq('null cell token', highlight('a\nnull\n', 'csv', ',').includes('tok-null'), true);
+});
+
+describe('highlight: ndjson', () => {
+  const jsonl = '{"id":1,"ok":true}\n{"id":2,"ok":false}\n';
+  const html = highlight(jsonl, 'ndjson');
+  check('keys', html.includes('tok-key'));
+  check('booleans', html.includes('tok-bool'));
+  check('line structure preserved', html.split('\n').length === jsonl.trimEnd().split('\n').length);
+  eq('lossless', stripHtml(html), jsonl.trimEnd());
+  eq('matches per-line json highlighting', html, jsonl.trimEnd().split('\n').map((line) => highlightJson(line)).join('\n'));
+  eq('injection safe', stripHtml(highlight('{"a":"<script>"}\n{"a":"<script>"}', 'ndjson')), '{"a":"<script>"}\n{"a":"<script>"}');
+  check('no raw script tag', !/<script/.test(highlight('{"a":"<script>alert(1)</script>"}\n{"b":1}', 'ndjson')));
 });
 
 describe('highlight: dispatch', () => {

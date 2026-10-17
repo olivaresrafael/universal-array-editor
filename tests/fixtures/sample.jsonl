@@ -1,0 +1,4 @@
+{"id": 1, "event": "start", "level": "info", "payload": {"user": "alice", "retries": 0}}
+{"id": 2, "event": "finish", "level": "warn", "payload": {"user": "bob", "retries": 2}, "ok": false}
+
+{"id": 3, "event": "start", "level": "info", "payload": {"user": "carol", "retries": 1}, "tags": ["a", "b"]}

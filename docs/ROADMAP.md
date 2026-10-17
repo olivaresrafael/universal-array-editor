@@ -23,9 +23,10 @@ This roadmap is a proposal, not a promise or committed schedule.
 ## Phase 2 — Format improvements
 - [x] JSON5 import/export
 - [x] CSV/TSV import/export with a documented type-inference policy
+- [x] NDJSON / JSON Lines import/export with line-numbered errors
 - [x] Item detail modal (JSON + Readable views, navigation, copy, edit, delete)
-- Consider NDJSON / JSON Lines mode.
 - Collect real CSV/TSV examples and refine the type-inference policy.
+- Consider TOML, which needs an explicit arrays-of-tables mapping first.
 
 ## Phase 3 — Quality of life
 - Undo/redo for edits and reordering.

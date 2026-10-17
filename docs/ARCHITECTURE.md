@@ -29,7 +29,8 @@ index.html (shell + view tabs: List | Prettify | Raw)
 - JSON5 is parsed and serialized by the `json5` package (comments, trailing commas, single quotes, unquoted keys). Output is normalized JSON5; comments are not preserved.
 - CSV/TSV is parsed and serialized by `papaparse` under the policy in `docs/FORMATS.md` (header row, cell-type inference, sniffed delimiter remembered for export).
 - YAML is parsed and serialized by `js-yaml`.
-- Auto-detect tries JSON first, then JSON5, then CSV/TSV (2+ columns only), then YAML, so the detected format is the most specific one.
+- Auto-detect tries JSON first, then JSON5, then NDJSON (2+ records only, so a single-line document stays JSON/JSON5, and before CSV because a record with commas sniffs as 2+ columns), then CSV/TSV (2+ columns only), then YAML, so the detected format is the most specific one.
+- NDJSON is parsed with `JSON.parse` per line; blank lines are skipped, non-object lines are rejected, and errors carry the 1-based line number.
 - A root array is required, and every root item must be a non-null object that is not itself an array.
 - “Same as input” exports according to the loaded or detected format.
 - Serialization normalizes indentation, quoting, and line wrapping. YAML comments and formatting are not preserved.
@@ -37,7 +38,7 @@ index.html (shell + view tabs: List | Prettify | Raw)
 ## Views
 
 - `List` is the current editor (reorder + form). It is the only view that mutates `data` via controls.
-- `Prettify` shows syntax-highlighted output (`src/highlight.js`: keys, strings, numbers, booleans, null, punctuation, comments) in the selected download format. It has an edit mode (textarea + Apply/Cancel) that parses with the shown format and never replaces `data` on syntax errors. All highlighting escapes HTML first, so user data cannot inject markup.
+- `Prettify` shows syntax-highlighted output (`src/highlight.js`: keys, strings, numbers, booleans, null, punctuation, comments) in the selected download format; NDJSON is highlighted as JSON per line and CSV/TSV cell by cell. It has an edit mode (textarea + Apply/Cancel) that parses with the shown format and never replaces `data` on syntax errors. All highlighting escapes HTML first, so user data cannot inject markup.
 - `Raw` is an editable textarea over the full document. It syncs from `data` on load, on tab enter, and via “Reload from data”; “Apply changes” parses with auto-detect and never replaces `data` on syntax errors (`rawDirty` guards against overwriting in-progress edits).
 - The `Auto-detect` input option shows the detected format in parentheses once data is loaded (e.g. `Auto-detect (YAML)`), via `refreshInputFormatLabel()`.
 - The download button shows the effective output format (`refreshDownloadBtn()`), and the stats include an `Output: …` pill, so the download format is always visible.
