@@ -1,9 +1,10 @@
 import './style.css';
 import { getLanguage, setLanguage, tr } from './i18n.js';
-import { parseText, serializeData, resolveFilePreference, parsers } from './parsers.js';
+import { parseText, serializeData, resolveFilePreference, parsers, getCsvDelimiter } from './parsers.js';
 import { clone, kind, firstUsable, fieldSamples, blankFor, validateValue, assertRootArray } from './model.js';
 import { initViewTabs } from './views.js';
 import { highlight } from './highlight.js';
+import { initItemModal } from './modal.js';
 
 const CONFIG = {
   supportLinks: {
@@ -18,6 +19,7 @@ let data = [];
 let fields = [];
 let editIndex = null;
 let draggedIndex = null;
+let suppressClick = false;
 let fileBaseName = 'array-edited';
 let loaded = false;
 let rawObjectMode = false;
@@ -51,6 +53,16 @@ function currentOutput() {
   }
 }
 
+const formatLabel = (format) => ({ json: 'JSON', json5: 'JSON5', yaml: 'YAML', csv: 'CSV', tsv: 'TSV' }[format] ?? String(format).toUpperCase());
+
+function refreshDownloadBtn() {
+  if (!loaded) {
+    $('downloadBtn').textContent = tr('downloadOutput');
+    return;
+  }
+  $('downloadBtn').textContent = tr('downloadOutputFormat', { format: formatLabel(currentOutput().format) });
+}
+
 function syncPretty() {
   const output = $('prettyOutput');
   if (!output || prettyEditing) return;
@@ -62,7 +74,7 @@ function syncPretty() {
   }
   try {
     const current = currentOutput();
-    output.innerHTML = highlight(current.text.trimEnd(), current.format);
+    output.innerHTML = highlight(current.text.trimEnd(), current.format, getCsvDelimiter());
     $('copyPrettyBtn').disabled = false;
     $('editPrettyBtn').disabled = false;
   } catch {
@@ -98,7 +110,8 @@ function refreshInputFormatLabel() {
   const auto = document.querySelector('#inputFormat option[value="auto"]');
   if (!auto) return;
   const showDetected = $('inputFormat').value === 'auto' && loaded;
-  const formatKey = inputSourceFormat === 'yaml' ? 'formatYAML' : inputSourceFormat === 'json5' ? 'formatJSON5' : 'formatJSON';
+  const formatKeys = { yaml: 'formatYAML', json5: 'formatJSON5', csv: 'formatCSV', tsv: 'formatTSV' };
+  const formatKey = formatKeys[inputSourceFormat] ?? 'formatJSON';
   auto.textContent = tr('autoDetect') + (showDetected ? ` (${tr(formatKey)})` : '');
 }
 
@@ -162,7 +175,9 @@ function applyTranslations(draft = null) {
   }
   renderSupport();
   refreshInputFormatLabel();
+  refreshDownloadBtn();
   syncPretty();
+  itemModal.retranslate();
 }
 
 function createInput(value, sample, update, opts = {}) {
@@ -457,7 +472,28 @@ function renderItems() {
       makeButton('×', 'danger small', tr('delete'), () => removeItem(index)),
     );
     row.append(grip, idx, summary, actions);
+    const openDetail = () => itemModal.open(index);
+    summary.classList.add('item-summary-clickable');
+    summary.setAttribute('role', 'button');
+    summary.setAttribute('tabindex', '0');
+    summary.setAttribute('aria-label', tr('viewDetails'));
+    summary.addEventListener('click', openDetail);
+    summary.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openDetail();
+      }
+    });
+    row.addEventListener('click', (event) => {
+      if (suppressClick) {
+        suppressClick = false;
+        return;
+      }
+      if (event.target.closest('button,input,select,textarea,a,.item-summary-clickable')) return;
+      openDetail();
+    });
     row.addEventListener('dragstart', (event) => {
+      suppressClick = true;
       draggedIndex = index;
       row.classList.add('dragging');
       event.dataTransfer.effectAllowed = 'move';
@@ -492,11 +528,13 @@ function renderItems() {
   if (loaded) {
     addPill(data.length === 1 ? tr('oneItem') : tr('listTotal', { count: data.length }));
     addPill(tr('fieldCount', { count: fields.length }));
+    addPill(tr('outputIs', { format: formatLabel(currentOutput().format) }));
     addPill(tr('localProcessing'));
   }
   try { $('preview').textContent = currentOutput().text.trimEnd(); } catch { $('preview').textContent = ''; }
   $('downloadBtn').disabled = !loaded;
   $('copyBtn').disabled = !loaded;
+  refreshDownloadBtn();
   syncPretty();
   syncRaw();
 }
@@ -543,7 +581,7 @@ function removeItem(index) {
   setStatus('itemDeleted', 'success');
 }
 
-function startEdit(index) {
+function startEdit(index, opts = {}) {
   editIndex = index;
   renderForm(data[index]);
   $('formTitle').textContent = tr('editItem', { index: index + 1 });
@@ -552,6 +590,15 @@ function startEdit(index) {
   $('cancelEditBtn').hidden = false;
   viewTabs.show('list');
   $('fields').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (opts.flash) {
+    const panel = document.querySelector('.form-panel');
+    if (panel) {
+      panel.classList.remove('flash');
+      void panel.offsetWidth;
+      panel.classList.add('flash');
+      setTimeout(() => panel.classList.remove('flash'), 2400);
+    }
+  }
 }
 
 function resetForm() {
@@ -595,13 +642,34 @@ const viewTabs = initViewTabs({
   },
 });
 
+const itemModal = initItemModal({
+  getCount: () => data.length,
+  getItem: (i) => data[i],
+  onEdit: (i) => startEdit(i, { flash: true }),
+  onDelete: (i) => {
+    const before = data.length;
+    removeItem(i);
+    if (data.length === before) return i;
+    if (!data.length) return -1;
+    return Math.min(i, data.length - 1);
+  },
+  onCopy: async (i) => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(data[i], null, 2));
+      setStatus('copySuccess', 'success');
+    } catch {
+      setStatus('copyFailed', 'error');
+    }
+  },
+});
+
 $('fileInput').addEventListener('change', async (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
   try {
     const preference = resolveFilePreference(file, $('inputFormat').value);
     const text = await file.text();
-    loadFromText(text, file.name.replace(/\.(json5?|ya?ml|txt)$/i, '') + '-edited', preference);
+    loadFromText(text, file.name.replace(/\.(json5?|ya?ml|csv|tsv|txt)$/i, '') + '-edited', preference);
     $('pastedText').value = text;
   } catch (error) {
     status(`${tr('fileReadError')} ${error?.message || ''}`.trim(), 'error');

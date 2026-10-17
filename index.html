@@ -24,13 +24,13 @@
     <div class="section-heading"><div class="step">1</div><div><h2 data-i18n="loadTitle">Load or paste your data</h2><p data-i18n="loadDescription">The root value must be an array of objects.</p></div></div>
     <div class="toolbar">
       <label class="file-label" for="fileInput" data-i18n="chooseFile">📂 Choose JSON/YAML file</label>
-      <input id="fileInput" type="file" accept=".json,.json5,.yaml,.yml,.txt,application/json,application/yaml,text/yaml,text/plain">
+      <input id="fileInput" type="file" accept=".json,.json5,.csv,.tsv,.yaml,.yml,.txt,application/json,application/yaml,text/yaml,text/csv,text/plain">
       <button id="sampleBtn" class="secondary" type="button" data-i18n="sampleButton">Try an example</button>
-      <button id="downloadBtn" class="primary" type="button" disabled data-i18n="downloadOutput">⬇ Download output</button>
+      <button id="downloadBtn" class="primary" type="button" disabled>⬇ Download output</button>
     </div>
     <div class="format-row">
-      <div class="format-control"><label for="inputFormat" data-i18n="inputFormat">Input format</label><select id="inputFormat"><option value="auto" data-i18n="autoDetect">Auto-detect</option><option value="json">JSON</option><option value="json5">JSON5</option><option value="yaml">YAML</option></select></div>
-      <div class="format-control"><label for="outputFormat" data-i18n="outputFormat">Download format</label><select id="outputFormat"><option value="source" data-i18n="sameAsInput">Same as input</option><option value="json">JSON</option><option value="json5">JSON5</option><option value="yaml">YAML</option></select></div>
+      <div class="format-control"><label for="inputFormat" data-i18n="inputFormat">Input format</label><select id="inputFormat"><option value="auto" data-i18n="autoDetect">Auto-detect</option><option value="json">JSON</option><option value="json5">JSON5</option><option value="yaml">YAML</option><option value="csv">CSV</option><option value="tsv">TSV</option></select></div>
+      <div class="format-control"><label for="outputFormat" data-i18n="outputFormat">Download format</label><select id="outputFormat"><option value="source" data-i18n="sameAsInput">Same as input</option><option value="json">JSON</option><option value="json5">JSON5</option><option value="yaml">YAML</option><option value="csv">CSV</option><option value="tsv">TSV</option></select></div>
     </div>
     <div class="input-methods">
       <div class="input-method">
@@ -104,6 +104,26 @@
   </section>
 </main>
 <footer><span data-i18n="privacyFooter">Files are processed in your browser and are not uploaded to this tool's server.</span> <span id="footerVersion">Array Editor</span> · <a href="https://github.com/" target="_blank" rel="noopener noreferrer" data-i18n="openSourceLink">Explore open-source code</a></footer>
+<dialog id="itemDialog" class="item-dialog" aria-labelledby="itemDialogTitle" tabindex="-1">
+  <div class="dialog-head">
+    <div class="dialog-title-wrap"><h2 id="itemDialogTitle"></h2><div id="itemDialogPos" class="subtle"></div></div>
+    <button id="itemDialogClose" type="button" class="secondary small" data-i18n="closeDialog">Close</button>
+  </div>
+  <div class="view-tabs small-tabs" role="tablist">
+    <button id="tabItemJson" type="button" role="tab" aria-selected="true" class="active" data-i18n="jsonView">JSON</button>
+    <button id="tabItemLegible" type="button" role="tab" aria-selected="false" data-i18n="legibleView">Readable</button>
+  </div>
+  <pre id="itemJsonView" class="item-json-view">[]</pre>
+  <div id="itemLegibleView" class="legible" hidden></div>
+  <div class="dialog-actions">
+    <button id="itemPrevBtn" type="button" class="secondary small" data-i18n="prevItem">← Previous</button>
+    <button id="itemNextBtn" type="button" class="secondary small" data-i18n="nextItem">Next →</button>
+    <span class="dialog-spacer"></span>
+    <button id="itemCopyBtn" type="button" class="secondary small" data-i18n="copyJson">Copy JSON</button>
+    <button id="itemEditBtn" type="button" class="primary small" data-i18n="edit">Edit</button>
+    <button id="itemDeleteBtn" type="button" class="danger small" data-i18n="delete">Delete item</button>
+  </div>
+</dialog>
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>

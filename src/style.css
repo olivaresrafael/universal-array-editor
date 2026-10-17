@@ -26,6 +26,30 @@
 .raw-label{font-size:.85rem;font-weight:700;color:#324058;display:block;margin-bottom:8px}
 .raw-editor{width:100%;min-height:320px;resize:vertical;border:1px solid #cbd5e1;border-radius:10px;padding:12px;font:.83rem/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink);background:#fff}
 .raw-actions{margin-top:10px}
+.item-summary-clickable{cursor:pointer}
+.item-summary-clickable:focus-visible{outline:3px solid #a9c2ff;outline-offset:2px;border-radius:8px}
+/* Item dialog */
+.item-dialog{border:1px solid var(--line);border-radius:14px;padding:20px;max-width:680px;width:calc(100vw - 40px);max-height:86vh;overflow:auto;background:var(--surface);color:var(--ink)}
+.item-dialog::backdrop{background:rgba(15,25,45,.55)}
+.dialog-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.dialog-title-wrap{flex:1;min-width:0}
+.dialog-title-wrap h2{margin:0;font-size:1.2rem;letter-spacing:-.02em;overflow-wrap:anywhere}
+.small-tabs{margin-bottom:12px}
+.small-tabs button{padding:7px 13px;font-size:.85rem}
+.item-json-view{white-space:pre-wrap;word-break:break-word;background:#0f1f3d;color:#e6efff;border-radius:10px;padding:14px;max-height:46vh;overflow:auto;font:.8rem/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;margin:0}
+.legible{display:grid;gap:4px;max-height:46vh;overflow:auto}
+.leg-box{display:grid;gap:6px}
+.leg-row{display:grid;grid-template-columns:minmax(110px,180px) 1fr;gap:10px;padding:7px 9px;border:1px solid var(--line);border-radius:9px;background:var(--soft)}
+.leg-key{font-weight:700;overflow-wrap:anywhere}
+.leg-val{min-width:0;overflow-wrap:anywhere}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);border-radius:100px;padding:3px 10px;background:#fff;font-size:.83rem}
+.leg-list{margin:0;padding-left:22px;display:grid;gap:6px}
+.dialog-actions{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.dialog-spacer{flex:1}
+/* Flash the edit zone when jumping to it from the modal */
+@keyframes flashRing{0%{box-shadow:0 0 0 0 rgba(40,95,232,.55)}100%{box-shadow:0 0 0 14px rgba(40,95,232,0)}}
+.form-panel.flash{animation:flashRing 1.1s ease-out 2;border-color:var(--blue)}
 .pretty-editor{width:100%;min-height:320px;resize:vertical;border:1px solid #33456b;border-radius:10px;padding:12px;font:.83rem/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#e6efff;background:#0b1830}
 .pretty-edit-help{margin:8px 0}
 .pretty-actions{margin-top:10px}

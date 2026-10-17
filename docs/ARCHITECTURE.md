@@ -27,8 +27,9 @@ index.html (shell + view tabs: List | Prettify | Raw)
 
 - JSON is parsed with `JSON.parse` and serialized with `JSON.stringify`.
 - JSON5 is parsed and serialized by the `json5` package (comments, trailing commas, single quotes, unquoted keys). Output is normalized JSON5; comments are not preserved.
+- CSV/TSV is parsed and serialized by `papaparse` under the policy in `docs/FORMATS.md` (header row, cell-type inference, sniffed delimiter remembered for export).
 - YAML is parsed and serialized by `js-yaml`.
-- Auto-detect tries JSON first, then JSON5, then YAML, so the detected format is the most specific one.
+- Auto-detect tries JSON first, then JSON5, then CSV/TSV (2+ columns only), then YAML, so the detected format is the most specific one.
 - A root array is required, and every root item must be a non-null object that is not itself an array.
 - “Same as input” exports according to the loaded or detected format.
 - Serialization normalizes indentation, quoting, and line wrapping. YAML comments and formatting are not preserved.
@@ -39,6 +40,11 @@ index.html (shell + view tabs: List | Prettify | Raw)
 - `Prettify` shows syntax-highlighted output (`src/highlight.js`: keys, strings, numbers, booleans, null, punctuation, comments) in the selected download format. It has an edit mode (textarea + Apply/Cancel) that parses with the shown format and never replaces `data` on syntax errors. All highlighting escapes HTML first, so user data cannot inject markup.
 - `Raw` is an editable textarea over the full document. It syncs from `data` on load, on tab enter, and via “Reload from data”; “Apply changes” parses with auto-detect and never replaces `data` on syntax errors (`rawDirty` guards against overwriting in-progress edits).
 - The `Auto-detect` input option shows the detected format in parentheses once data is loaded (e.g. `Auto-detect (YAML)`), via `refreshInputFormatLabel()`.
+- The download button shows the effective output format (`refreshDownloadBtn()`), and the stats include an `Output: …` pill, so the download format is always visible.
+
+## Item modal
+
+`src/modal.js` owns a read-only `<dialog>` detail view per record, opened by clicking (or Enter/Space on) a list row. Dragging a row suppresses the click. The modal shows JSON (highlighted) and Readable (key→value rows, scalar chips, nested lists) tabs, position (`2 of 5`), and Previous/Next navigation (buttons and arrow keys, disabled at the ends). Copy writes the item as JSON; Edit closes the modal and jumps to the List form with a flash ring on the edit zone; Delete confirms and advances the modal (or closes it when the array is empty). All dynamic values use `textContent`, so user data cannot inject markup.
 
 ## Form rendering
 

@@ -1,0 +1,4 @@
+id,name,enabled,score,nick,meta,notes
+201,First item,true,9.5,,"{""source"":""sample""}","needs ""review"", ok"
+202,Second item,false,,,,"plain note"
+203,01234,TRUE,,NULL,,
