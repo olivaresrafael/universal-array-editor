@@ -54,7 +54,12 @@ export function validateValue(value, sample, path) {
     }
     return Number(value);
   }
-  if (type === 'boolean') return Boolean(value);
+  if (type === 'boolean') {
+    // Form controls give real booleans, but raw text inputs arrive as strings,
+    // where Boolean('false') would wrongly mean true.
+    if (typeof value === 'string') return value !== '' && value !== 'false' && value !== '0';
+    return Boolean(value);
+  }
   if (type === 'array') {
     if (!Array.isArray(value)) throw new Error(tr('invalidArray', { path }));
     const prototype = sample.find((item) => item !== null && item !== undefined);

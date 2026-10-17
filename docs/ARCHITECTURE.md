@@ -52,6 +52,12 @@ index.html (shell + view tabs: List | Prettify | Raw)
 
 Because data is edited in memory and serialized only on preview/copy/download, the input file is not overwritten.
 
+`validateValue()` coerces form input to the sample type before saving. Number samples reject empty or non-finite text; boolean samples accept real booleans from the checkbox and treat the strings `'false'` and `'0'` as `false` (plain `Boolean('false')` would be wrong); array rows keep their own type when it differs from the sample, so no value is silently coerced across types.
+
+## Testing
+
+`tests/run-tests.mjs` (`pnpm test`) exercises everything that does not need a DOM: format detection, the CSV/TSV cell policy, round-trips between every format pair, root-array validation, form value validation, syntax-highlighting escaping, and English/Spanish translation parity. UI behavior (rendering, drag and drop, the modal, downloads) is verified manually with the checklist in `docs/TESTING.md`.
+
 ## Internationalization
 
 - Static UI strings use `data-i18n` or `data-i18n-placeholder` attributes.

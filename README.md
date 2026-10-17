@@ -34,6 +34,7 @@ Open the local URL printed by Vite.
 
 ```sh
 pnpm run check
+pnpm test
 pnpm run build
 pnpm run preview
 ```

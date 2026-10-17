@@ -3,11 +3,14 @@
 ## Commands
 
 ```sh
-pnpm run check
-pnpm run build
+pnpm run check   # syntax check of every src module
+pnpm test         # node unit suite: parsers, model, highlight, translations
+pnpm run build    # production bundle
 ```
 
-A successful build proves that Vite can bundle the project, but it does not replace browser testing.
+`pnpm test` runs `tests/run-tests.mjs`, which covers everything that does not need a DOM: format detection, the CSV/TSV cell policy, round-trips between all format pairs, root-array validation, form value validation, syntax highlighting escaping, and English/Spanish translation parity. It uses the synthetic fixtures in `tests/fixtures/`.
+
+A successful build proves that Vite can bundle the project, and the unit suite proves the pure logic, but neither replaces browser testing of the UI.
 
 ## Manual regression checklist
 
@@ -65,6 +68,11 @@ A successful build proves that Vite can bundle the project, but it does not repl
 - [ ] Test at a narrow mobile viewport.
 - [ ] Inspect network activity: document content must not be sent to a server.
 - [ ] Verify donation links are hidden when not configured and open safely when configured.
+
+## Known behavior worth verifying manually
+
+- A single-column table is never auto-detected as CSV (it would be ambiguous with YAML), so it must be loaded with an explicit CSV selection.
+- Clearing a boolean field's text input keeps it `false` rather than becoming `null`.
 
 ## Fixtures
 
